@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekam Medis - Klinik Fisioterapi Sentanu</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Gaya Khusus Halaman Cetak (Print Stylesheet) */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #printSection {
+                display: block !important;
+                visibility: visible !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+            }
+            #printSection * {
+                visibility: visible !important;
+            }
+        }
+        .tab-btn.active {
+            border-bottom: 2px solid #2563eb;
+            color: #2563eb;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar Aplikasi -->
+    <header class="bg-blue-900 text-white shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white p-2 rounded-lg text-blue-900">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">KLINIK FISIOTERAPI SENTANU</h1>
+                    <p class="text-xs text-blue-200">Sistem Informasi Rekam Medis Elektronik (Non-Obat)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="btnOpenExportModal" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium transition shadow">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Export Rekapan Bulanan</span>
+                </button>
+                <button id="btnOpenPatientModal" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium transition shadow">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>+ Pasien Baru</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Utama -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full no-print">
+        
+        <!-- Quick Stats & Search -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Pasien Terdaftar</p>
+                    <h3 id="statTotalPatients" class="text-2xl font-bold text-slate-800">0</h3>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Sesi Terapi</p>
+                    <h3 id="statTotalRecords" class="text-2xl font-bold text-slate-800">0</h3>
+                </div>
+                <div class="p-3 bg-green-50 rounded-lg text-green-600">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center">
+                <div class="w-full relative">
+                    <input type="text" id="searchBar" placeholder="Cari Nama / NIK Pasien..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel Pasien & Rekam Medis -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-slate-800 flex items-center space-x-2">
+                    <i data-lucide="list" class="w-5 h-5 text-blue-600"></i>
+                    <span>Daftar Pasien & Rekam Medis</span>
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
+                            <th class="px-6 py-3">NIK / No. RM</th>
+                            <th class="px-6 py-3">Nama Pasien</th>
+                            <th class="px-6 py-3">Usia / JK</th>
+                            <th class="px-6 py-3">Kontak</th>
+                            <th class="px-6 py-3">Total Kunjungan</th>
+                            <th class="px-6 py-3 text-center">Aksi & Setting Data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientTableBody" class="divide-y divide-slate-200 text-sm">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer / Watermark -->
+    <footer class="py-4 text-center text-xs text-slate-400 tracking-wider no-print border-t border-slate-200/60 bg-white mt-auto">
+        developed by tude
+    </footer>
+
+    <!-- Modal: Export Rekapan Bulanan -->
+    <div id="exportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div class="px-6 py-4 bg-emerald-800 text-white flex justify-between items-center">
+                <h3 class="font-bold flex items-center space-x-2 text-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Export Rekapan Bulanan</span>
+                </h3>
+                <button type="button" class="btnCloseModal text-slate-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-600">Pilih Bulan dan Tahun untuk mengunduh rekapitulasi data rekam medis dalam format Excel (CSV).</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Bulan & Tahun</label>
+                    <input type="month" id="exportMonth" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" class="btnCloseModal px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-100">Batal</button>
+                    <button type="button" id="btnDownloadCsv" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-500 font-medium">Download CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Form Pendaftaran / Edit Pasien -->
+    <div id="patientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div class="px-6 py-4 bg-blue-900 text-white flex justify-between items-center">
+                <h3 id="modalPatientTitle" class="font-bold flex items-center space-x-2">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    <span>Form Pendaftaran Pasien</span>
+                </h3>
+                <button type="button" class="btnCloseModal text-slate-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="formPatient" class="p-6 space-y-4">
+                <input type="hidden" id="editPatientId" value="">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">NIK (Nomor Induk Kependudukan)</label>
+                    <input type="text" id="pNik" required placeholder="3517xxxxxxxxxxxx" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label>
+                    <input type="text" id="pName" required placeholder="Nama Pasien" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Lahir</label>
+                        <input type="date" id="pDob" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Kelamin</label>
+                        <select id="pGender" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">No. Telepon / WhatsApp</label>
+                    <input type="tel" id="pPhone" placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Pekerjaan</label>
+                    <input type="text" id="pJob" placeholder="Pekerjaan / Aktivitas" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat</label>
+                    <textarea id="pAddress" rows="2" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" class="btnCloseModal px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-500 font-medium">Simpan Data Pasien</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Detail Pasien & Input SOAP -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4 no-print">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Header Modal -->
+            <div class="px-6 py-4 bg-blue-900 text-white flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+                    <div>
+                        <h3 id="modalPatientName" class="font-bold text-lg">Detail Pasien</h3>
+                        <p id="modalPatientSub" class="text-xs text-blue-200">NIK: - | RM: -</p>
+                    </div>
+                </div>
+                <button type="button" class="btnCloseModal text-slate-300 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            
+            <!-- Body Modal -->
+            <div class="p-6 overflow-y-auto flex-grow space-y-6">
+                <!-- Card Informasi Pasien -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                    <div><span class="text-slate-500 block">Usia:</span><span id="infoAge" class="font-semibold text-slate-800">-</span></div>
+                    <div><span class="text-slate-500 block">Jenis Kelamin:</span><span id="infoGender" class="font-semibold text-slate-800">-</span></div>
+                    <div><span class="text-slate-500 block">Telepon:</span><span id="infoPhone" class="font-semibold text-slate-800">-</span></div>
+                    <div><span class="text-slate-500 block">Pekerjaan:</span><span id="infoJob" class="font-semibold text-slate-800">-</span></div>
+                </div>
+
+                <!-- Section: Riwayat Rekam Medis -->
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-bold text-slate-800 flex items-center space-x-2">
+                            <i data-lucide="history" class="w-4 h-4 text-blue-600"></i>
+                            <span>Riwayat Sesi Fisioterapi</span>
+                        </h4>
+                        <button id="btnOpenSoapForm" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-md text-xs font-medium flex items-center space-x-1 shadow">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>+ Sesi SOAP Baru</span>
+                        </button>
+                    </div>
+
+                    <!-- Form SOAP (Input Rekam Medis Baru) -->
+                    <div id="soapFormContainer" class="hidden bg-slate-50 border border-blue-200 rounded-xl p-4 mb-6 shadow-inner">
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
+                            <h5 class="font-bold text-blue-900 text-sm">Input Rekam Medis Fisioterapi (SOAP)</h5>
+                            <button type="button" id="btnCloseSoapForm" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">Batal</button>
+                        </div>
+                        
+                        <!-- Navigasi Tab SOAP -->
+                        <div class="flex border-b border-slate-200 mb-4">
+                            <button type="button" class="tab-btn active px-4 py-2 text-xs" data-tab="tabS">S - Subjektif</button>
+                            <button type="button" class="tab-btn px-4 py-2 text-xs" data-tab="tabO">O - Objektif & Fisik</button>
+                            <button type="button" class="tab-btn px-4 py-2 text-xs" data-tab="tabA">A - Asesmen / Diagnosis</button>
+                            <button type="button" class="tab-btn px-4 py-2 text-xs" data-tab="tabP">P - Plan & Terapi</button>
+                        </div>
+
+                        <form id="formSoap">
+                            <input type="hidden" id="soapPatientId">
+                            
+                            <!-- TAB S: Subjektif -->
+                            <div id="tabS" class="tab-content space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Keluhan Utama (Chief Complaint)</label>
+                                    <textarea id="sComplaint" rows="2" required placeholder="Contoh: Nyeri pinggang bawah sejak 3 hari lalu setelah mengangkat barang berat" class="w-full p-2 border rounded-md text-xs focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Riwayat Penyakit Sekarang (RPS)</label>
+                                        <textarea id="sRps" rows="2" placeholder="Sifat nyeri, durasi, faktor memperberat/memperringan" class="w-full p-2 border rounded-md text-xs focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Riwayat Penyakit Dahulu (RPD)</label>
+                                        <textarea id="sRpd" rows="2" placeholder="Riwayat trauma, operasi, atau riwayat fisioterapi sebelumnya" class="w-full p-2 border rounded-md text-xs focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB O: Objektif -->
+                            <div id="tabO" class="tab-content hidden space-y-3">
+                                <div class="grid grid-cols-3 gap-3 bg-white p-3 rounded border">
+                                    <div>
+                                        <label class="block text-xs text-slate-500">Tekanan Darah</label>
+                                        <input type="text" id="oBp" placeholder="120/80 mmHg" class="w-full p-1.5 border rounded text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-500">Nadi (HR)</label>
+                                        <input type="text" id="oHr" placeholder="80 x/menit" class="w-full p-1.5 border rounded text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-500">Laju Napas (RR)</label>
+                                        <input type="text" id="oRr" placeholder="20 x/menit" class="w-full p-1.5 border rounded text-xs">
+                                    </div>
+                                </div>
+                                <div class="bg-white p-3 rounded border">
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Skala Nyeri (VAS 0-10)</label>
+                                    <div class="flex items-center space-x-4">
+                                        <input type="range" id="oVas" min="0" max="10" value="0" class="w-full" oninput="document.getElementById('vasVal').innerText = this.value">
+                                        <span id="vasVal" class="text-sm font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">0</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Inspeksi & Postur / Gait</label>
+                                        <textarea id="oInspection" rows="2" placeholder="Statis & Dinamis (Asimetris, bengkak, deformitas)" class="w-full p-2 border rounded-md text-xs"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Palpasi</label>
+                                        <textarea id="oPalpation" rows="2" placeholder="Spasme otot, nyeri tekan, suhu lokal" class="w-full p-2 border rounded-md text-xs"></textarea>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Pemeriksaan Gerak (ROM & MMT)</label>
+                                        <textarea id="oRom" rows="2" placeholder="Keterbatasan LMT, Kekuatan Otot (MMT 0-5)" class="w-full p-2 border rounded-md text-xs"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tes Khusus (Special Tests)</label>
+                                        <textarea id="oSpecialTest" rows="2" placeholder="Lasegue, Patrick, Apley, SLR, dll." class="w-full p-2 border rounded-md text-xs"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB A: Asesmen -->
+                            <div id="tabA" class="tab-content hidden space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Diagnosis Fisioterapi (ICF Domain)</label>
+                                    <textarea id="aDiagnosis" rows="2" required placeholder="Contoh: Gangguan aktivitas berjalan d/o Nyeri Low Back Pain et causa Spasme Erector Spinae" class="w-full p-2 border rounded-md text-xs focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Impairment (Struktur & Fungsi Body)</label>
+                                        <textarea id="aImpairment" rows="2" placeholder="Nyeri, spasme, keterbatasan LMT" class="w-full p-2 border rounded-md text-xs"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Functional Limitation & Participation</label>
+                                        <textarea id="aLimitation" rows="2" placeholder="Kesulitan duduk lama, tidak bisa sholat, dll." class="w-full p-2 border rounded-md text-xs"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB P: Plan -->
+                            <div id="tabP" class="tab-content hidden space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Intervensi Fisioterapi (Modalitas & Manual)</label>
+                                    <textarea id="pIntervention" rows="2" required placeholder="Contoh: TENS freq 100Hz 15m, US 1.5W/cm2 5m, Core Stabilization Exercise" class="w-full p-2 border rounded-md text-xs focus:ring-1 focus:ring-blue-500 outline-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Home Exercise & Edukasi Pasien</label>
+                                    <textarea id="pHomeEx" rows="2" placeholder="Postural correction, Cat & Cow stretch 3x10 reps di rumah" class="w-full p-2 border rounded-md text-xs"></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Rencana Sesi / Evaluasi Ulang</label>
+                                        <input type="text" id="pTarget" placeholder="Contoh: 2x seminggu selama 3 minggu" class="w-full p-2 border rounded-md text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fisioterapis Penanggung Jawab</label>
+                                        <input type="text" id="pTherapist" required placeholder="Ftr. Nama, S.Fis" class="w-full p-2 border rounded-md text-xs">
+                                    </div>
+                                </div>
+                                <div class="flex justify-end pt-2">
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-bold shadow">Simpan Rekam Medis</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Accordion List Riwayat -->
+                    <div id="soapHistoryList" class="space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Khusus Cetak Rekam Medis (Print View) -->
+    <div id="printSection" class="hidden">
+        <div class="border-b-2 border-slate-900 pb-4 mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-wider text-slate-900">KLINIK FISIOTERAPI SENTANU</h1>
+                <p class="text-xs text-slate-600">Jl. Kesehatan No. 123, Kota | Telp: (021) 555-0199</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-lg font-bold text-blue-900">REKAM MEDIS FISIOTERAPI</h2>
+                <p id="prDate" class="text-xs text-slate-500">Tanggal: -</p>
+            </div>
+        </div>
+
+        <!-- Info Pasien Pada Hasil Cetak -->
+        <div class="bg-slate-100 p-3 rounded mb-6 text-xs grid grid-cols-2 gap-2 border border-slate-300">
+            <div><strong>NIK:</strong> <span id="prNik">-</span></div>
+            <div><strong>Nama Pasien:</strong> <span id="prName">-</span></div>
+            <div><strong>Tgl Lahir / Usia:</strong> <span id="prDob">-</span></div>
+            <div><strong>Jenis Kelamin:</strong> <span id="prGender">-</span></div>
+        </div>
+
+        <!-- Detail Rincian SOAP -->
+        <div class="space-y-4 text-xs">
+            <div class="border-b pb-2">
+                <h3 class="font-bold text-slate-800 border-l-4 border-blue-600 pl-2 mb-1">S - SUBJEKTIF</h3>
+                <p class="mb-1"><strong>Keluhan Utama:</strong> <span id="prSComplaint">-</span></p>
+                <p><strong>RPS:</strong> <span id="prSRps">-</span> | <strong>RPD:</strong> <span id="prSRpd">-</span></p>
+            </div>
+            <div class="border-b pb-2">
+                <h3 class="font-bold text-slate-800 border-l-4 border-blue-600 pl-2 mb-1">O - OBJEKTIF & PEMERIKSAAN FISIK</h3>
+                <p class="mb-1"><strong>TTV:</strong> TD: <span id="prOBp">-</span> | Nadi: <span id="prOHr">-</span> | RR: <span id="prORr">-</span> | <strong>VAS Nyeri:</strong> <span id="prOVas">-</span>/10</p>
+                <p class="mb-1"><strong>Inspeksi/Postur:</strong> <span id="prOInspection">-</span></p>
+                <p class="mb-1"><strong>Palpasi:</strong> <span id="prOPalpation">-</span></p>
+                <p class="mb-1"><strong>ROM & MMT:</strong> <span id="prORom">-</span></p>
+                <p><strong>Special Tests:</strong> <span id="prOSpecialTest">-</span></p>
+            </div>
+            <div class="border-b pb-2">
+                <h3 class="font-bold text-slate-800 border-l-4 border-blue-600 pl-2 mb-1">A - ASESMEN / DIAGNOSIS FISIOTERAPI</h3>
+                <p class="mb-1"><strong>Diagnosis:</strong> <span id="prADiagnosis">-</span></p>
+                <p class="mb-1"><strong>Impairment:</strong> <span id="prAImpairment">-</span></p>
+                <p><strong>Limitation:</strong> <span id="prALimitation">-</span></p>
+            </div>
+            <div class="pb-2">
+                <h3 class="font-bold text-slate-800 border-l-4 border-blue-600 pl-2 mb-1">P - RENCANA INTERVENSI & EDUKASI</h3>
+                <p class="mb-1"><strong>Intervensi:</strong> <span id="prPIntervention">-</span></p>
+                <p class="mb-1"><strong>Edukasi / Home Exercise:</strong> <span id="prPHomeEx">-</span></p>
+                <p><strong>Rencana Sesi:</strong> <span id="prPTarget">-</span></p>
+            </div>
+        </div>
+
+        <!-- Kolom Tanda Tangan -->
+        <div class="mt-12 flex justify-end text-xs">
+            <div class="text-center w-48">
+                <p class="mb-12">Fisioterapis DPJP,</p>
+                <p id="prTherapist" class="font-bold underline">( Ftr. .................... )</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Engine -->
+    <script>
+        const STORAGE_PATIENTS = 'sentanu_physio_patients_v2';
+        const STORAGE_SOAP = 'sentanu_physio_soap_v2';
+
+        let patients = JSON.parse(localStorage.getItem(STORAGE_PATIENTS)) || [];
+        let soapRecords = JSON.parse(localStorage.getItem(STORAGE_SOAP)) || [];
+
+        // Seed Sample Data jika kosong
+        if (patients.length === 0) {
+            patients = [{
+                id: 'p-1',
+                nik: '5103011205950002',
+                name: 'I Wayan Pratama',
+                dob: '1995-05-12',
+                gender: 'Laki-laki',
+                phone: '081234567890',
+                job: 'Karyawan Swasta',
+                address: 'Jl. Sunset Road No. 45, Kuta'
+            }];
+            soapRecords = [{
+                id: 's-1',
+                patientId: 'p-1',
+                date: new Date().toISOString(),
+                complaint: 'Nyeri pinggang bawah kanan menjalar ke paha belakang',
+                rps: 'Dirasakan sejak 5 hari lalu setelah angkat beban berat',
+                rpd: 'Tidak ada riwayat trauma tinggi',
+                bp: '120/80', hr: '78', rr: '18', vas: 6,
+                inspection: 'Postur agak membungkuk menahan nyeri (Antalgic gait)',
+                palpation: 'Spasme otot Quadratus Lumborum & Piriformis kanan',
+                rom: 'Keterbatasan Fleksi Lumbal krn nyeri, MMT Trunk Fleksi 4/5',
+                specialTest: 'SLR Test Positif di 60 derajat kanan',
+                diagnosis: 'Low Back Pain e.c Piriformis Syndrome & Muscle Strain',
+                impairment: 'Nyeri lokal & spasme lumbar',
+                limitation: 'Kesulitan duduk lama > 20 menit',
+                intervention: 'IR Modalitas 15m, TENS 100Hz 15m, Stretching Piriformis & Core Stability',
+                homeEx: 'Stretching Hamstring & Piriformis mandiri 3x sehari',
+                target: '2x seminggu selama 2 minggu',
+                therapist: 'Ftr. Tirta Adi, S.Fis'
+            }];
+            saveToStorage();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_PATIENTS, JSON.stringify(patients));
+            localStorage.setItem(STORAGE_SOAP, JSON.stringify(soapRecords));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderPatientTable();
+            setupEventListeners();
+            
+            // Set default value bulan export ke bulan saat ini
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('exportMonth').value = `${year}-${month}`;
+        });
+
+        function setupEventListeners() {
+            // Tombol Buka Modal Export Rekapan
+            document.getElementById('btnOpenExportModal').addEventListener('click', () => {
+                openModal('exportModal');
+            });
+
+            // Tombol Eksekusi Download CSV
+            document.getElementById('btnDownloadCsv').addEventListener('click', () => {
+                const selectedMonthVal = document.getElementById('exportMonth').value; // Format: YYYY-MM
+                if (!selectedMonthVal) {
+                    alert('Silakan pilih bulan dan tahun terlebih dahulu.');
+                    return;
+                }
+                exportMonthlyReportToCSV(selectedMonthVal);
+                closeModal('exportModal');
+            });
+
+            // Tombol Tambah Pasien Baru
+            document.getElementById('btnOpenPatientModal').addEventListener('click', () => {
+                document.getElementById('formPatient').reset();
+                document.getElementById('editPatientId').value = '';
+                document.getElementById('modalPatientTitle').innerHTML = `
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    <span>Form Pendaftaran Pasien</span>
+                `;
+                lucide.createIcons();
+                openModal('patientModal');
+            });
+
+            // Close Modal Buttons
+            document.querySelectorAll('.btnCloseModal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    closeModal('patientModal');
+                    closeModal('detailModal');
+                    closeModal('exportModal');
+                });
+            });
+
+            // Submit Form Pasien (Tambah / Edit)
+            document.getElementById('formPatient').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const editId = document.getElementById('editPatientId').value;
+                
+                if (editId) {
+                    const index = patients.findIndex(p => p.id === editId);
+                    if (index !== -1) {
+                        patients[index].nik = document.getElementById('pNik').value;
+                        patients[index].name = document.getElementById('pName').value;
+                        patients[index].dob = document.getElementById('pDob').value;
+                        patients[index].gender = document.getElementById('pGender').value;
+                        patients[index].phone = document.getElementById('pPhone').value;
+                        patients[index].job = document.getElementById('pJob').value;
+                        patients[index].address = document.getElementById('pAddress').value;
+                    }
+                } else {
+                    const newPatient = {
+                        id: 'p-' + Date.now(),
+                        nik: document.getElementById('pNik').value,
+                        name: document.getElementById('pName').value,
+                        dob: document.getElementById('pDob').value,
+                        gender: document.getElementById('pGender').value,
+                        phone: document.getElementById('pPhone').value,
+                        job: document.getElementById('pJob').value,
+                        address: document.getElementById('pAddress').value
+                    };
+                    patients.unshift(newPatient);
+                }
+
+                saveToStorage();
+                renderPatientTable();
+                closeModal('patientModal');
+            });
+
+            // Filter Search Bar
+            document.getElementById('searchBar').addEventListener('input', (e) => {
+                renderPatientTable(e.target.value.toLowerCase());
+            });
+
+            // Tab Switcher Form SOAP
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                    
+                    e.target.classList.add('active');
+                    const tabId = e.target.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.remove('hidden');
+                });
+            });
+
+            // Open/Close SOAP Form Container
+            document.getElementById('btnOpenSoapForm').addEventListener('click', () => {
+                document.getElementById('soapFormContainer').classList.remove('hidden');
+            });
+            document.getElementById('btnCloseSoapForm').addEventListener('click', () => {
+                document.getElementById('soapFormContainer').classList.add('hidden');
+            });
+
+            // Submit Form SOAP
+            document.getElementById('formSoap').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const patientId = document.getElementById('soapPatientId').value;
+                const newSoap = {
+                    id: 's-' + Date.now(),
+                    patientId: patientId,
+                    date: new Date().toISOString(),
+                    complaint: document.getElementById('sComplaint').value,
+                    rps: document.getElementById('sRps').value,
+                    rpd: document.getElementById('sRpd').value,
+                    bp: document.getElementById('oBp').value,
+                    hr: document.getElementById('oHr').value,
+                    rr: document.getElementById('oRr').value,
+                    vas: document.getElementById('oVas').value,
+                    inspection: document.getElementById('oInspection').value,
+                    palpation: document.getElementById('oPalpation').value,
+                    rom: document.getElementById('oRom').value,
+                    specialTest: document.getElementById('oSpecialTest').value,
+                    diagnosis: document.getElementById('aDiagnosis').value,
+                    impairment: document.getElementById('aImpairment').value,
+                    limitation: document.getElementById('aLimitation').value,
+                    intervention: document.getElementById('pIntervention').value,
+                    homeEx: document.getElementById('pHomeEx').value,
+                    target: document.getElementById('pTarget').value,
+                    therapist: document.getElementById('pTherapist').value
+                };
+
+                soapRecords.unshift(newSoap);
+                saveToStorage();
+                document.getElementById('formSoap').reset();
+                document.getElementById('soapFormContainer').classList.add('hidden');
+                renderPatientDetail(patientId);
+                renderPatientTable();
+            });
+        }
+
+        // Render Table Pasien
+        function renderPatientTable(filter = '') {
+            const tbody = document.getElementById('patientTableBody');
+            tbody.innerHTML = '';
+
+            const filteredPatients = patients.filter(p => 
+                p.name.toLowerCase().includes(filter) || p.nik.includes(filter)
+            );
+
+            document.getElementById('statTotalPatients').innerText = patients.length;
+            document.getElementById('statTotalRecords').innerText = soapRecords.length;
+
+            if (filteredPatients.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-slate-400">Tidak ada data pasien ditemukan</td></tr>`;
+                return;
+            }
+
+            filteredPatients.forEach(p => {
+                const count = soapRecords.filter(s => s.patientId === p.id).length;
+                const age = calculateAge(p.dob);
+                const lastSoap = soapRecords.find(s => s.patientId === p.id);
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-slate-900">
+                        <div>${p.nik}</div>
+                        <div class="text-xs text-slate-400">${p.id}</div>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-blue-900">${p.name}</td>
+                    <td class="px-6 py-4 text-slate-600">${age} Thn / ${p.gender}</td>
+                    <td class="px-6 py-4 text-slate-600">${p.phone || '-'}</td>
+                    <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">${count} Sesi</span></td>
+                    <td class="px-6 py-4 text-center space-x-1">
+                        <button onclick="openPatientDetail('${p.id}')" class="bg-blue-600 text-white hover:bg-blue-500 px-2.5 py-1.5 rounded-md font-medium text-xs transition inline-flex items-center space-x-1" title="Buka EMR / SOAP">
+                            <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                            <span>Detail</span>
+                        </button>
+                        ${lastSoap ? `
+                            <button onclick="printSoapRecord('${lastSoap.id}')" class="bg-slate-800 text-white hover:bg-slate-700 px-2 py-1.5 rounded-md text-xs transition inline-flex items-center" title="Cetak EMR Terakhir">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                            </button>
+                        ` : ''}
+                        <button onclick="editPatient('${p.id}')" class="bg-amber-100 text-amber-700 hover:bg-amber-200 px-2 py-1.5 rounded-md text-xs transition inline-flex items-center" title="Setting Data Pasien">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="deletePatient('${p.id}')" class="bg-red-100 text-red-600 hover:bg-red-200 px-2 py-1.5 rounded-md text-xs transition inline-flex items-center" title="Hapus Pasien">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        // Fungsi Export Rekapan Bulanan ke CSV (Excel Compatible)
+        function exportMonthlyReportToCSV(yearMonthStr) {
+            // yearMonthStr format: "YYYY-MM"
+            const filteredRecords = soapRecords.filter(r => {
+                const recordMonth = r.date.substring(0, 7); // "YYYY-MM"
+                return recordMonth === yearMonthStr;
+            });
+
+            if (filteredRecords.length === 0) {
+                alert(`Tidak ada data kunjungan / rekam medis pada bulan ${yearMonthStr}.`);
+                return;
+            }
+
+            // Header Kolom CSV
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "No,Tanggal Sesi,NIK Pasien,Nama Pasien,Usia,Jenis Kelamin,Telepon,Keluhan Utama (S),Skala Nyeri (VAS),Diagnosis Fisioterapi (A),Intervensi (P),Fisioterapis\r\n";
+
+            filteredRecords.forEach((r, index) => {
+                const patient = patients.find(p => p.id === r.patientId) || {};
+                const tgl = new Date(r.date).toLocaleDateString('id-ID');
+                const nik = `"${patient.nik || '-'}"`;
+                const nama = `"${patient.name || 'Tanpa Nama'}"`;
+                const usia = `"${calculateAge(patient.dob)}"`;
+                const jk = `"${patient.gender || '-'}"`;
+                const telp = `"${patient.phone || '-'}"`;
+                const keluhan = `"${(r.complaint || '').replace(/"/g, '""')}"`;
+                const vas = `"${r.vas || 0}"`;
+                const diag = `"${(r.diagnosis || '').replace(/"/g, '""')}"`;
+                const intervensi = `"${(r.intervention || '').replace(/"/g, '""')}"`;
+                const terapis = `"${(r.therapist || '').replace(/"/g, '""')}"`;
+
+                const row = [index + 1, tgl, nik, nama, usia, jk, telp, keluhan, vas, diag, intervensi, terapis].join(",");
+                csvContent += row + "\r\n";
+            });
+
+            // Trigger Download File
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Rekapan_Klinik_Sentanu_${yearMonthStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Edit Data Pasien
+        function editPatient(patientId) {
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+
+            document.getElementById('editPatientId').value = patient.id;
+            document.getElementById('pNik').value = patient.nik;
+            document.getElementById('pName').value = patient.name;
+            document.getElementById('pDob').value = patient.dob;
+            document.getElementById('pGender').value = patient.gender;
+            document.getElementById('pPhone').value = patient.phone || '';
+            document.getElementById('pJob').value = patient.job || '';
+            document.getElementById('pAddress').value = patient.address || '';
+
+            document.getElementById('modalPatientTitle').innerHTML = `
+                <i data-lucide="edit-3" class="w-5 h-5"></i>
+                <span>Edit / Setting Data Pasien</span>
+            `;
+            lucide.createIcons();
+            openModal('patientModal');
+        }
+
+        // Hapus Data Pasien
+        function deletePatient(patientId) {
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+
+            if (confirm(`Apakah Anda yakin ingin menghapus data pasien "${patient.name}" beserta seluruh riwayat rekam medisnya?`)) {
+                patients = patients.filter(p => p.id !== patientId);
+                soapRecords = soapRecords.filter(s => s.patientId !== patientId);
+                saveToStorage();
+                renderPatientTable();
+            }
+        }
+
+        // Detail Pasien Modal
+        function openPatientDetail(patientId) {
+            renderPatientDetail(patientId);
+            openModal('detailModal');
+        }
+
+        function renderPatientDetail(patientId) {
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+
+            document.getElementById('soapPatientId').value = patient.id;
+            document.getElementById('modalPatientName').innerText = patient.name;
+            document.getElementById('modalPatientSub').innerText = `NIK: ${patient.nik} | ID: ${patient.id}`;
+            document.getElementById('infoAge').innerText = calculateAge(patient.dob) + ' Tahun';
+            document.getElementById('infoGender').innerText = patient.gender;
+            document.getElementById('infoPhone').innerText = patient.phone || '-';
+            document.getElementById('infoJob').innerText = patient.job || '-';
+
+            const historyContainer = document.getElementById('soapHistoryList');
+            historyContainer.innerHTML = '';
+
+            const records = soapRecords.filter(s => s.patientId === patientId);
+            if (records.length === 0) {
+                historyContainer.innerHTML = `<p class="text-xs text-slate-400 italic">Belum ada rekam medis terdaftar untuk pasien ini.</p>`;
+                return;
+            }
+
+            records.forEach(r => {
+                const dateStr = new Date(r.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                const div = document.createElement('div');
+                div.className = 'border border-slate-200 rounded-lg p-4 bg-white hover:border-blue-300 transition shadow-sm';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2 pb-2 border-b">
+                        <span class="font-bold text-xs text-blue-900">${dateStr}</span>
+                        <div class="space-x-2">
+                            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">DPJP: ${r.therapist}</span>
+                            <button onclick="printSoapRecord('${r.id}')" class="text-xs bg-slate-800 text-white px-2 py-1 rounded hover:bg-slate-700">
+                                Cetak EMR
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                        <div><strong class="text-blue-800">S (Keluhan):</strong> ${r.complaint}</div>
+                        <div><strong class="text-blue-800">O (VAS):</strong> ${r.vas}/10 | ${r.inspection || '-'}</div>
+                        <div><strong class="text-blue-800">A (Diagnosis):</strong> ${r.diagnosis}</div>
+                        <div><strong class="text-blue-800">P (Intervensi):</strong> ${r.intervention}</div>
+                    </div>
+                `;
+                historyContainer.appendChild(div);
+            });
+        }
+
+        // Fungsi Cetak EMR
+        function printSoapRecord(soapId) {
+            const record = soapRecords.find(s => s.id === soapId);
+            if (!record) {
+                alert('Data rekam medis tidak ditemukan.');
+                return;
+            }
+            const patient = patients.find(p => p.id === record.patientId);
+
+            document.getElementById('prDate').innerText = 'Tanggal: ' + new Date(record.date).toLocaleDateString('id-ID');
+            document.getElementById('prNik').innerText = patient ? patient.nik : '-';
+            document.getElementById('prName').innerText = patient ? patient.name : '-';
+            document.getElementById('prDob').innerText = patient ? `${patient.dob} (${calculateAge(patient.dob)} thn)` : '-';
+            document.getElementById('prGender').innerText = patient ? patient.gender : '-';
+
+            document.getElementById('prSComplaint').innerText = record.complaint || '-';
+            document.getElementById('prSRps').innerText = record.rps || '-';
+            document.getElementById('prSRpd').innerText = record.rpd || '-';
+
+            document.getElementById('prOBp').innerText = record.bp || '-';
+            document.getElementById('prOHr').innerText = record.hr || '-';
+            document.getElementById('prORr').innerText = record.rr || '-';
+            document.getElementById('prOVas').innerText = record.vas;
+            document.getElementById('prOInspection').innerText = record.inspection || '-';
+            document.getElementById('prOPalpation').innerText = record.palpation || '-';
+            document.getElementById('prORom').innerText = record.rom || '-';
+            document.getElementById('prOSpecialTest').innerText = record.specialTest || '-';
+
+            document.getElementById('prADiagnosis').innerText = record.diagnosis || '-';
+            document.getElementById('prAImpairment').innerText = record.impairment || '-';
+            document.getElementById('prALimitation').innerText = record.limitation || '-';
+
+            document.getElementById('prPIntervention').innerText = record.intervention || '-';
+            document.getElementById('prPHomeEx').innerText = record.homeEx || '-';
+            document.getElementById('prPTarget').innerText = record.target || '-';
+            document.getElementById('prTherapist').innerText = `( ${record.therapist || 'Fisioterapis'} )`;
+
+            window.print();
+        }
+
+        // Helper Functions
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        }
+
+        function calculateAge(dobString) {
+            if (!dobString) return '-';
+            const today = new Date();
+            const birthDate = new Date(dobString);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+    </script>
+</body>
+</html>
